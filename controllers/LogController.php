@@ -19,6 +19,13 @@ class LogController extends Controller
         return $behaviors;
     }
 
+    /* Отключение всех методов кроме GET */
+    public function verbs(){
+        return[
+            'index' => ['GET'],
+            ];
+    }
+    
     /* Возвращает параметры запроса */
     private function getQueryParams()
     {
