@@ -37,14 +37,14 @@ class LogController extends Controller
             'offset' => intval($queryParams['page']) ? ($queryParams['page']-1) * 100 : 0,
 
             /** Данные поиска */
-            'user' => $queryParams['user'],
-            'partner' => $queryParams['partner'],
-            'message' => $queryParams['message'],
+            'user' => trim($queryParams['user']),
+            'partner' => trim($queryParams['partner']),
+            'message' => trim($queryParams['message']),
 
 
             /** Данные фильтров */
-            'action' => $queryParams['action'],
-            'section' => $queryParams['section'],
+            'action' => trim($queryParams['action']),
+            'section' => trim($queryParams['section']),
             'dateTimeFrom' => preg_match('/[\d]{4}-[\d]{2}-[\d]{2} [\d]{2}:[\d]{2}:[\d]{2}/',$queryParams['dateTimeFrom']) ?
                 $queryParams['dateTimeFrom'] : "1970-01-01 00:00:00",
             'dateTimeTo' => preg_match('/[\d]{4}-[\d]{2}-[\d]{2} [\d]{2}:[\d]{2}:[\d]{2}/',$queryParams['dateTimeTo']) ?
@@ -54,7 +54,7 @@ class LogController extends Controller
             /** Проверяем задан ли sort, если задан,
              * проверяем есть ли минус, если есть убираем его.
              */
-            'sortBy' => $queryParams['sort'] ?
+            'sortBy' => trim($queryParams['sort']) ?
                 $queryParams['sort'][0]=='-' ? substr($queryParams['sort'], 1) :
                     $queryParams['sort'] : "cabin_log.id",
             'sortDirection' => $queryParams['sort'][0]!='-' && $queryParams['sort'] ? "ASC" : "DESC",
