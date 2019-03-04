@@ -25,47 +25,80 @@ class LogController extends Controller
             'index' => ['GET'],
             ];
     }
-    
+
+    /* Валидация времени */
+    private function timeCheck($queryParams,$param)
+    {
+        $defaultDate = '1970-01-01 00:00:00' ;
+        if($param == 'dateTimeTo'){
+            $defaultDate = date('Y-m-d H:i:s');
+        }
+        return isset($queryParams[$param]) ?
+            preg_match('/[\d]{4}-[\d]{2}-[\d]{2} [\d]{2}:[\d]{2}:[\d]{2}/', trim($queryParams[$param])) ?
+            trim($queryParams[$param]) :
+            $defaultDate :
+        $defaultDate;
+
+    }
+
+    /* Валидация параметра */
+    private function validation($param)
+    {
+        $queryParams = Yii::$app->request->get();
+        switch ($param){
+            case 'page':
+                return isset($queryParams[$param]) && intval($queryParams[$param]) ? ($queryParams[$param]-1) * 100 : 0;
+                break;
+            case 'user':
+            case 'partner':
+            case 'action':
+            case 'section':
+            case 'message':
+                return isset($queryParams[$param]) ? trim($queryParams[$param]) : '' ;
+                break;
+            case 'dateTimeFrom':
+            case 'dateTimeTo':
+                return $this->timeCheck($queryParams, $param);
+                break;
+            case 'sort':
+                $result = isset($queryParams[$param])?
+                    trim($queryParams[$param])[0]=='-' ? substr($queryParams[$param], 1) :
+                        $queryParams[$param] : "cabin_log.id";
+                $whitelist=["username", "email", "section", "message", "dateTime", "action", "partner"];
+                if(!in_array($result,$whitelist)){
+                    $result = "cabin_log.id";
+                }
+                return $result;
+                break;
+            case 'sortDirection':
+                return isset($queryParams['sort']) ?
+                trim($queryParams['sort'])[0]!='-' ? "ASC" : "DESC" : "DESC";
+                break;
+        }
+    }
+
     /* Возвращает параметры запроса */
     private function getQueryParams()
     {
-        $queryParams = Yii::$app->request->get();
-
-        $queryArray = [
-
+        return [
             /** Данные пагинации */
-            'offset' => intval($queryParams['page']) ? ($queryParams['page']-1) * 100 : 0,
+            'offset' => $this->validation('page'),
 
             /** Данные поиска */
-            'user' => trim($queryParams['user']),
-            'partner' => trim($queryParams['partner']),
-            'message' => trim($queryParams['message']),
-
+            'user' => $this->validation('user'),
+            'partner' => $this->validation('partner'),
+            'message' => $this->validation('message'),
 
             /** Данные фильтров */
-            'action' => trim($queryParams['action']),
-            'section' => trim($queryParams['section']),
-            'dateTimeFrom' => preg_match('/[\d]{4}-[\d]{2}-[\d]{2} [\d]{2}:[\d]{2}:[\d]{2}/',$queryParams['dateTimeFrom']) ?
-                $queryParams['dateTimeFrom'] : "1970-01-01 00:00:00",
-            'dateTimeTo' => preg_match('/[\d]{4}-[\d]{2}-[\d]{2} [\d]{2}:[\d]{2}:[\d]{2}/',$queryParams['dateTimeTo']) ?
-                $queryParams['dateTimeTo'] : date('Y-m-d H:i:s'),
+            'action' => $this->validation('action'),
+            'section' => $this->validation('section'),
+            'dateTimeFrom' => $this->validation('dateTimeFrom'),
+            'dateTimeTo' => $this->validation('dateTimeTo'),
 
             /** Данные сортировки */
-            /** Проверяем задан ли sort, если задан,
-             * проверяем есть ли минус, если есть убираем его.
-             */
-            'sortBy' => trim($queryParams['sort']) ?
-                $queryParams['sort'][0]=='-' ? substr($queryParams['sort'], 1) :
-                    $queryParams['sort'] : "cabin_log.id",
-            'sortDirection' => $queryParams['sort'][0]!='-' && $queryParams['sort'] ? "ASC" : "DESC",
+            'sortBy' => $this->validation('sort'),
+            'sortDirection' => $this->validation('sortDirection'),
         ];
-
-        /* Проверка сортировки по белому списку */
-        $whitelist=["username", "email", "section", "message", "dateTime", "action", "partner"];
-        if(!in_array($queryArray['sortBy'],$whitelist)){
-            $queryArray['sortBy'] = "cabin_log.id";
-        }
-        return $queryArray;
     }
 
     /* Построитель запросов */
@@ -107,6 +140,7 @@ class LogController extends Controller
     /* Основная функция, вызывается при обращенни к /log */
     public function actionIndex()
     {
+        ini_set('error_reporting', E_ALL);
         $queryParams = $this->getQueryParams();
         $dataBaseQuery = $this->createDataBaseQuery($queryParams);
         return $this->returnArray($dataBaseQuery, $queryParams);
