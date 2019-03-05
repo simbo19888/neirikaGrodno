@@ -12,6 +12,7 @@ class QueryParams
     public function getParams(){
         return $this->params;
     }
+
     /* Получает параметры запроса */
     public function __construct()
     {
