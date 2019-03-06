@@ -30,7 +30,7 @@ class LogController extends Controller
             ->select(
                 ['username', 'email','split_part("action", \'/\', 1) as "section"',
                     'split_part("action", \'/\', 2) as "action"', 'message',
-                    'to_char(log_time, \'DD.MM.YYYY HH:MM:SS\') as datetime', 'name as partner']
+                    'to_char(log_time, \'DD.MM.YYYY HH:MM:SS\') as "dateTime"', 'name as partner']
             )
             ->from('neirika.cabin_log')
             ->leftJoin(
