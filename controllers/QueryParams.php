@@ -106,6 +106,9 @@ class QueryParams
         if (!in_array($result, $whitelist)) {
             $result = "cabin_log.id";
         }
+        if($result == "dateTime"){
+            $result = "log_time";
+        }
         return $result;
     }
 
